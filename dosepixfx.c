@@ -37,6 +37,7 @@
     data loop back configuration. This data loop-back is done with firmware intervention using
     a pair of MANUAL-IN and MANUAL-OUT DMA channels. This can be changed to a hardware based
     AUTO loopback using the LOOPBACK_AUTO pre-processor definition.
+    
 
     This application also demonstrates the use of the endpoint specific CYU3P_USBEP_SS_RESET_EVT
     event to detect and recover from potential USB data corruption due to protocol level errors.
