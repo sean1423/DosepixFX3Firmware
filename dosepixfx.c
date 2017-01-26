@@ -37,7 +37,6 @@
     data loop back configuration. This data loop-back is done with firmware intervention using
     a pair of MANUAL-IN and MANUAL-OUT DMA channels. This can be changed to a hardware based
     AUTO loopback using the LOOPBACK_AUTO pre-processor definition.
-    
 
     This application also demonstrates the use of the endpoint specific CYU3P_USBEP_SS_RESET_EVT
     event to detect and recover from potential USB data corruption due to protocol level errors.
@@ -49,6 +48,17 @@
 // Bulk out on EP 01 increments data bit on GPIF 15.
 // Bulk in on EP 81 increments first and last data bit in the window.
 // EP 02 and 82 work as LOOP.
+
+
+//    apiRetStatus = CyU3PDebugInit (CY_FX_EP_DEBUG_SOCKET, 8); // This line is needed for usb debugger. Will need different socket.
+//    if (apiRetStatus != CY_U3P_SUCCESS)
+//    {
+//        CyFxAppErrorHandler (apiRetStatus);
+//    }
+
+//    apiRetStatus = CyU3PDebugPrint (4,"Text goes here"); // This line is needed for usb debugger. Will need different socket.
+
+//These lines can be used to send debug info to the USB Debugger
 
 
 #include "cyu3system.h"
@@ -393,6 +403,35 @@ CyFxApplnStart (
     /* First identify the usb speed. Once that is identified,
      * create a DMA channel and start the transfer on this. */
 
+
+    //Defining Debug Endpoint
+    apiRetStatus = CyU3PDebugInit (CY_FX_EP_DEBUG_SOCKET, 8); // This line is needed for usb debugger. Will need different socket.
+        if (apiRetStatus != CY_U3P_SUCCESS)
+        {
+            CyFxAppErrorHandler (apiRetStatus);
+        }
+
+        CyU3PMemSet ((uint8_t *)&epCfg, 0, sizeof (epCfg));
+            epCfg.enable = CyTrue;
+            epCfg.epType = CY_U3P_USB_EP_BULK;
+            epCfg.burstLen = (usbSpeed == CY_U3P_SUPER_SPEED) ? (CY_FX_EP_BURST_LENGTH) : 1;
+            epCfg.streams = 0;
+            epCfg.pcktSize = size;
+
+            /* USB Producer endpoint configuration */
+            apiRetStatus = CyU3PSetEpConfig (CY_FX_EP_DEBUG_SOCKET, &epCfg);
+            if (apiRetStatus != CY_U3P_SUCCESS)
+            {
+                CyU3PDebugPrint (4, "CyU3PSetEpConfig failed, Error code = %d\n", apiRetStatus);
+                CyFxAppErrorHandler (apiRetStatus);
+            }
+
+
+
+
+
+
+
     /* Based on the Bus Speed configure the endpoint packet size */
     switch (usbSpeed)
     {
@@ -430,7 +469,7 @@ CyFxApplnStart (
     }
 
     /* Flush the endpoint memory */
-    CyU3PUsbFlushEp(CY_FX_USB_PRODUCER);
+    CyU3PUsbFlushEp(CY_FX_USB_PRODUCER); // CY_FX_USB_PRODUCER endpoint ID
 
     /* USB Consumer endpoint configuration */
     apiRetStatus = CyU3PSetEpConfig (CY_FX_USB_CONSUMER, &epCfg);
@@ -737,7 +776,7 @@ CyFxApplnUSBSetupCB (
         isHandled = CyTrue; //This line is essential. Did not include it and broke code. Always Include.
 
         switch (bRequest) //First two cases work.
-        {
+        { //The cases for vendor commands here are for SPI. These all work, however
 
         	case CY_FX_RQT_ID_CHECK: // This case is taken from SPI.c and the function it was copied from was commented out for testing.
         		CyU3PUsbSendEP0Data (8, (uint8_t *)glFirmwareID);
