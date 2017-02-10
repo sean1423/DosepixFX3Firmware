@@ -164,7 +164,7 @@ CyFxGpioInit (void)
                 16, apiRetStatus);
         CyFxAppErrorHandler(apiRetStatus);
 	
-	
+    }
     return apiRetStatus;
 }
 
