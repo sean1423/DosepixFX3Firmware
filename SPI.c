@@ -149,6 +149,22 @@ CyFxGpioInit (void)
         CyFxAppErrorHandler(apiRetStatus);
     }
 
+	    /* Configure GPIO 16 as Slave Select Line (Chip Select) */
+    gpioConfig.outValue    = CyFalse;
+    gpioConfig.inputEn     = CyFalse;
+    gpioConfig.driveLowEn  = CyTrue;
+    gpioConfig.driveHighEn = CyFalse;
+    gpioConfig.intrMode    = CY_U3P_GPIO_NO_INTR;
+
+    apiRetStatus = CyU3PGpioSetSimpleConfig(16, &gpioConfig);
+    if (apiRetStatus != CY_U3P_SUCCESS)
+    {
+        /* Error handling */
+        CyU3PDebugPrint (4, "CyU3PGpioSetSimpleConfig for GPIO Id %d failed, error code = %d\n",
+                16, apiRetStatus);
+        CyFxAppErrorHandler(apiRetStatus);
+	
+	
     return apiRetStatus;
 }
 
