@@ -1018,6 +1018,11 @@ CyFxApplnInit (void)
         CyFxAppErrorHandler (apiRetStatus);
     }
 
+
+    /* Initialize the GPIO Pins for the SPI interface. */
+    apiRetStatus = CyFxGpioInit ();
+
+
     /* Start the USB functionality. */
     apiRetStatus = CyU3PUsbStart();
     if (apiRetStatus != CY_U3P_SUCCESS)
@@ -1274,10 +1279,10 @@ main (void)
 // Here the IO matrix for the FX3 device is configured.
     CyU3PMemSet ((uint8_t *)&io_cfg, 0, sizeof (io_cfg));
     io_cfg.isDQ32Bit = CyFalse;
-    io_cfg.useUart   = CyFalse;
+    io_cfg.useUart   = CyTrue;
     io_cfg.useI2C    = CyFalse;
     io_cfg.useI2S    = CyFalse;
-    io_cfg.useSpi    = CyTrue; // Must be left at CyFalse for some reason?
+    io_cfg.useSpi    = CyFalse; // Must be left at CyFalse for some reason?
     //io_cfg.lppMode   = CY_U3P_IO_MATRIX_LPP_DEFAULT;
     io_cfg.lppMode   = CY_U3P_IO_MATRIX_LPP_DEFAULT; // as per cyfxbulklpauto.c //Change to CY_U3P_IO_MATRIX_LPP_DEFAULT if SPI is in use
     io_cfg.s0Mode    = CY_U3P_SPORT_INACTIVE;
@@ -1285,7 +1290,7 @@ main (void)
 
     /* No GPIOs are enabled. */
     io_cfg.gpioSimpleEn[0]  = 0;
-    io_cfg.gpioSimpleEn[1]  = 0;
+    io_cfg.gpioSimpleEn[1]  = 0x01E00000;
     io_cfg.gpioComplexEn[0] = 0;
     io_cfg.gpioComplexEn[1] = 0; //These 4 lines have been uncommented during SPI implementation.
     status = CyU3PDeviceConfigureIOMatrix (&io_cfg);

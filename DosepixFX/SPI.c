@@ -63,6 +63,7 @@ uint16_t glSpiPageSize = 0x100;  /* SPI Page size to be used for transfers. */
 
 /* This function intializes the GPIO module. GPIO Ids 53-56 are used for communicating
    with the SPI slave device. */
+
 CyU3PReturnStatus_t
 CyFxGpioInit (void)
 {
@@ -82,7 +83,7 @@ CyFxGpioInit (void)
     {
         /* Error Handling */
         CyU3PDebugPrint (4, "CyU3PGpioInit failed, error code = %d\n", apiRetStatus);
-        //CyFxAppErrorHandler(apiRetStatus);  //Commented out this line
+        CyFxAppErrorHandler(apiRetStatus);
     }
 
     /* Configure GPIO 53 as output(SPI_CLOCK). */
@@ -149,32 +150,6 @@ CyFxGpioInit (void)
         CyFxAppErrorHandler(apiRetStatus);
     }
 
-    apiRetStatus = CyU3PDeviceGpioOverride(13, CyTrue);
-    if (apiRetStatus != CY_U3P_SUCCESS)
-    {
-        /* Error handling */
-        CyU3PDebugPrint (4, "CyU3PGpioSetSimpleConfig for GPIO Id %d failed, error code = %d\n",
-                13, apiRetStatus);
-        CyFxAppErrorHandler(apiRetStatus);
-
-    }
-
-	    /* Configure GPIO 13 as Slave Select Line (Chip Select) */
-    gpioConfig.outValue    = CyTrue;
-    gpioConfig.inputEn     = CyFalse;
-    gpioConfig.driveLowEn  = CyTrue;
-    gpioConfig.driveHighEn = CyTrue;
-    gpioConfig.intrMode    = CY_U3P_GPIO_NO_INTR;
-
-    apiRetStatus = CyU3PGpioSetSimpleConfig(13, &gpioConfig);
-    if (apiRetStatus != CY_U3P_SUCCESS)
-    {
-        /* Error handling */
-        CyU3PDebugPrint (4, "CyU3PGpioSetSimpleConfig for GPIO Id %d failed, error code = %d\n",
-                13, apiRetStatus);
-        CyFxAppErrorHandler(apiRetStatus);
-	
-    }
     return apiRetStatus;
 }
 
@@ -508,116 +483,6 @@ CyFxSpiTransfer
 }
 
 
-//CyBool_t
-//CyFxUSBSetupCB (
-//        uint32_t setupdat0,
-//        uint32_t setupdat1)
-//{
-//    /* Fast enumeration is used. Only requests addressed to the interface, class,
-//     * vendor and unknown control requests are received by this function. */
-//
-//    uint8_t  bRequest, bReqType;
-//    uint8_t  bType, bTarget;
-//    uint16_t wValue, wIndex, wLength;
-//    CyBool_t isHandled = CyFalse;
-//    CyU3PReturnStatus_t status = CY_U3P_SUCCESS;
-//
-//    /* Decode the fields from the setup request. */
-//    /*bReqType = (setupdat0 & CY_U3P_USB_REQUEST_TYPE_MASK);
-//    bType    = (bReqType & CY_U3P_USB_TYPE_MASK);
-//    bTarget  = (bReqType & CY_U3P_USB_TARGET_MASK);
-//    bRequest = ((setupdat0 & CY_U3P_USB_REQUEST_MASK) >> CY_U3P_USB_REQUEST_POS);
-//    wValue   = ((setupdat0 & CY_U3P_USB_VALUE_MASK)   >> CY_U3P_USB_VALUE_POS);
-//    wIndex   = ((setupdat1 & CY_U3P_USB_INDEX_MASK)   >> CY_U3P_USB_INDEX_POS);
-//    wLength   = ((setupdat1 & CY_U3P_USB_LENGTH_MASK)   >> CY_U3P_USB_LENGTH_POS);*/
-//    	  bReqType 		  = 0xC0;
-//          bRequest      = 0xB0;
-//          wValue        = 0x0000;
-//          wIndex        = 0x0000;
-//          wLength       = 0x0008;
-//
-//    if (bType == CY_U3P_USB_STANDARD_RQT)
-//    {
-//        /* Handle SET_FEATURE(FUNCTION_SUSPEND) and CLEAR_FEATURE(FUNCTION_SUSPEND)
-//         * requests here. It should be allowed to pass if the device is in configured
-//         * state and failed otherwise. */
-//        if ((bTarget == CY_U3P_USB_TARGET_INTF) && ((bRequest == CY_U3P_USB_SC_SET_FEATURE)
-//                    || (bRequest == CY_U3P_USB_SC_CLEAR_FEATURE)) && (wValue == 0))
-//        {
-//            if (glIsApplnActive)
-//                CyU3PUsbAckSetup ();
-//            else
-//                CyU3PUsbStall (0, CyTrue, CyFalse);
-//
-//            isHandled = CyTrue;
-//        }
-//    }
-//
-//    /* Handle supported vendor requests. */
-//    if (bType == CY_U3P_USB_VENDOR_RQT)
-//    {
-//        isHandled = CyTrue;
-//
-//        switch (bRequest)
-//        {
-//            case CY_FX_RQT_ID_CHECK:
-//                CyU3PUsbSendEP0Data (8, (uint8_t *)glFirmwareID);
-//                break;
-//
-//            case CY_FX_RQT_SPI_FLASH_WRITE:
-//                status = CyU3PUsbGetEP0Data (wLength, glEp0Buffer, NULL);
-//                if (status == CY_U3P_SUCCESS)
-//                {
-//                    status = CyFxSpiTransfer (wIndex, wLength,
-//                            glEp0Buffer, CyFalse);
-//                }
-//                break;
-//
-//            case CY_FX_RQT_SPI_FLASH_READ:
-//                CyU3PMemSet (glEp0Buffer, 0, sizeof (glEp0Buffer));
-//                status = CyFxSpiTransfer (wIndex, wLength,
-//                        glEp0Buffer, CyTrue);
-//                if (status == CY_U3P_SUCCESS)
-//                {
-//                    status = CyU3PUsbSendEP0Data (wLength, glEp0Buffer);
-//                }
-//                break;
-//
-//            case CY_FX_RQT_SPI_FLASH_ERASE_POLL:
-//                status = CyFxSpiEraseSector ((wValue) ? CyTrue : CyFalse,
-//                        (wIndex & 0xFF), glEp0Buffer);
-//                if (status == CY_U3P_SUCCESS)
-//                {
-//                    CyFxSpiWaitForStatus ();
-//                    if (wValue == 0)
-//                    {
-//                        status = CyU3PUsbSendEP0Data (wLength, glEp0Buffer);
-//                    }
-//                    else
-//                    {
-//                        CyU3PUsbAckSetup ();
-//                    }
-//                }
-//                break;
-//
-//            default:
-//                /* This is unknown request. */
-//                isHandled = CyFalse;
-//                break;
-//        }
-//
-//        /* If there was any error, return not handled so that the library will
-//         * stall the request. Alternatively EP0 can be stalled here and return
-//         * CyTrue. */
-//        if (status != CY_U3P_SUCCESS)
-//        {
-//            isHandled = CyFalse;
-//        }
-//    }
-//
-//    return isHandled;
-//}
-
 /* This is the callback function to handle the USB events. */
 void CyFxUSBEventCB (
     CyU3PUsbEventType_t evtype, /* Event type */
@@ -640,8 +505,6 @@ void CyFxUSBEventCB (
     }
 }
 
-
-//This has all been commented out since it already exists within dosepixfx.c and both definitions are identical.
 /* Callback function to handle LPM requests from the USB 3.0 host. This function is invoked by the API
    whenever a state change from U0 -> U1 or U0 -> U2 happens. If we return CyTrue from this function, the
    FX3 device is retained in the low power state. If we return CyFalse, the FX3 device immediately tries
@@ -791,14 +654,14 @@ AppThread_Entry (
     CyU3PReturnStatus_t status = CY_U3P_SUCCESS;
 
     /* Initialize the debug interface. */
-    status = CyFxDebugInit ();
-    if (status != CY_U3P_SUCCESS)
-    {
-        goto handle_error;
-    }
+//    status = CyFxDebugInit ();
+//    if (status != CY_U3P_SUCCESS)
+//    {
+//        goto handle_error;
+//    }
 
     /* Initialize the application. */
-    status = CyFxUsbSpiGpioInit (0x100);
+    status = CyFxUsbSpiGpioInit (0x100); //This line doesnt work. //////////////////////////////////////////
     if (status != CY_U3P_SUCCESS)
     {
         goto handle_error;
