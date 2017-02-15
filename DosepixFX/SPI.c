@@ -73,9 +73,9 @@ CyFxGpioInit (void)
 
     /* Initialize the GPIO module. */
     gpioClock.fastClkDiv = 2;
-    gpioClock.slowClkDiv = 0;
-    gpioClock.simpleDiv  = CY_U3P_GPIO_SIMPLE_DIV_BY_2;
-    gpioClock.clkSrc     = CY_U3P_SYS_CLK;
+    gpioClock.slowClkDiv = 64;
+    gpioClock.simpleDiv  = CY_U3P_GPIO_SIMPLE_DIV_BY_64;
+    gpioClock.clkSrc     = CY_U3P_SYS_CLK_BY_16;
     gpioClock.halfDiv    = 0;
 
     apiRetStatus = CyU3PGpioInit(&gpioClock, NULL);
@@ -87,7 +87,7 @@ CyFxGpioInit (void)
     }
 
     /* Configure GPIO 53 as output(SPI_CLOCK). */
-    gpioConfig.outValue    = CyFalse;
+    gpioConfig.outValue    = CyTrue;
     gpioConfig.inputEn     = CyFalse;
     gpioConfig.driveLowEn  = CyTrue;
     gpioConfig.driveHighEn = CyTrue;
@@ -103,7 +103,7 @@ CyFxGpioInit (void)
     }
 
     /* Configure GPIO 54 as output(SPI_SSN) */
-    gpioConfig.outValue    = CyTrue;
+    gpioConfig.outValue    = CyFalse;
     gpioConfig.inputEn     = CyFalse;
     gpioConfig.driveLowEn  = CyTrue;
     gpioConfig.driveHighEn = CyTrue;
@@ -162,7 +162,7 @@ CyFxSpiSetClockValue (
 {
     CyU3PReturnStatus_t status;
 
-    status = CyU3PGpioSetValue (FX3_SPI_CLK, CyFalse);
+    status = CyU3PGpioSetValue (FX3_SPI_CLK, isHigh);
 
     return status;
 }
